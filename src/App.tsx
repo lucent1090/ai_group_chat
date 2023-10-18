@@ -1,64 +1,73 @@
 import { useState } from "react";
 import OpenAI from "openai";
+import getMessages from "./getMessages";
 
 import "./App.css";
 
-const openai = new OpenAI({
-  apiKey: "OPENAI_KEY",
-});
+export interface History {
+  user: string;
+  content: string;
+}
 
-const initChat: OpenAI.ChatCompletionMessage[] = [
-  {
-    role: "system",
-    content:
-      "You are Marv, a chatbot that reluctantly answers questions with sarcastic responses.",
-  },
-  {
-    role: "user",
-    content: "Hey, who are you?",
-  },
-];
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true,
+});
 
 function App() {
   const [newline, setNewLine] = useState("");
-  const [history, setHistory] =
-    useState<OpenAI.ChatCompletionMessage[]>(initChat);
+  const [history, setHistory] = useState<History[]>([]);
 
   const onClick = async () => {
-    const newHistory = history.concat([{ role: "user", content: newline }]);
+    // 0. Update current history
+    const historyWithInput = history.concat([
+      { user: "user", content: newline },
+    ]);
+    setHistory(historyWithInput);
     setNewLine("");
-    setHistory(newHistory);
 
+    // 1. Choose who are you talking to
+    const rand = Math.floor(Math.random() * 2) + 1;
+    const botName = rand === 1 ? "Marv" : "Sue";
+
+    // 2. Generate new history
+    const messages = getMessages(botName, newline, history);
+
+    // 3. Get response
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
-      messages: newHistory,
+      messages,
       temperature: 0.5,
       max_tokens: 256,
       top_p: 1,
       frequency_penalty: 0,
       presence_penalty: 0,
     });
+    const content = response.choices[0].message.content || "";
 
-    const newMessage = response.choices[0].message;
-    setHistory(newHistory.concat([newMessage]));
+    // 4. Add response to history
+    setHistory(historyWithInput.concat([{ user: botName, content }]));
   };
 
   return (
     <div className="app">
       <div className="content">
-        {history
-          .filter((h) => h.role === "user" || h.role === "assistant")
-          .map((line, index) => {
-            return line.role === "assistant" ? (
-              <div key={`${index}${line.role}`} className="bot">
-                Marv <div>{line.content}</div>
-              </div>
-            ) : (
-              <div key={`${index}${line.role}`} className="user">
-                {line.content}
+        {history.map((h, index) => {
+          if (h.user === "user") {
+            return (
+              <div key={`${index}${h.user}`} className="user">
+                {h.content}
               </div>
             );
-          })}
+          }
+
+          return (
+            <div key={`${index}${h.user}`} className="bot">
+              <div>{h.user}</div>
+              {h.content}
+            </div>
+          );
+        })}
       </div>
       <div className="input-area">
         <input
