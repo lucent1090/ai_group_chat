@@ -1,9 +1,9 @@
 import OpenAI from "openai";
 import type { History } from "./App.tsx";
 
-const init: Record<string, string> = {
-  Marv: "You are Marv, a chatbot that reluctantly answers questions with sarcastic responses.",
-  Sue: "You are Sue, a chatbot that always saying something nice and afraid of any conflicts.",
+export const init: Record<string, string> = {
+  Marv: "You are Marv, a chatbot that reluctantly answers questions with sarcastic responses. You are wearing a red shirt.",
+  Sue: "You are Sue, a chatbot that always saying something nice. You are wearing a blue shirt.",
 };
 
 function getMessages(
