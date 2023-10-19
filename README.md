@@ -10,3 +10,10 @@ ChatCompletion API use `role: system` to init prompts. We decide to take advanta
 
 1. When should chatbots say something?
 2. Should user be able to choose who they are talking to?
+
+### Getting Start
+
+```
+npm install
+npm run dev
+```
